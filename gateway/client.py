@@ -21,16 +21,17 @@ class Client:
         return {**self.properties, 'state': self.state}
  
     def get_next_command_by_state(self, plugin):
-        for command in sorted(plugin.commands, key=lambda x: x.priority, reverse=True):
-            if command.tag in self.state:
-                logger.debug('Client already got command {command}, continuing'.format(command=command.tag))
+        for matcher in sorted(plugin.matchers, key=lambda x: x.priority, reverse=True):
+            if not matcher(self):
+                logger.debug('Client did not match {matcher}, continuing'.format(matcher=matcher.__name__))
                 continue
-            for matcher in plugin.matchers:
-                if matcher(self):
-                    self.update_state(command.tag)
-                    logger.debug('Client matched {plugin} matcher, returning command {command}'.format(plugin=plugin.name, command=command.tag))
-                    return command
-                logger.debug('Client did not match plugin {plugin}.'.format(plugin=plugin.name))
+            for tag in matcher.tags:
+                if tag in self.state:
+                    logger.debug('Client already got {tag}, continuing'.format(tag=tag))
+                    continue
+                self.update_state(tag)
+                logger.debug('Client matched {plugin} matcher, returning command {tag}'.format(plugin=plugin.name, tag=tag))
+                return plugin.commands[tag]
 
     def update_state(self, value=None, test=False):
         if isinstance(value, list): # Updating from client side

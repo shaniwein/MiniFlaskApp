@@ -29,7 +29,7 @@ config = Dictionary(dict(
     )),
 
     plugins = Dictionary(dict(
-        plugins_path     = '/home/user/course/project/gateway/plugins/default.py',
+        plugins_path     = '/home/user/course/project/gateway/run_plugins.py',
         default_priority = 0,
     )),
     

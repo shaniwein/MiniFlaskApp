@@ -17,7 +17,7 @@ def run_command(response):
         print('command', command)
         return command_mapping[command]()
     except Exception:
-        print('Command {name} is not defined in client.'.format(command))
+        print('Command {name} is not defined in client.'.format(name=command))
 
 def sleep(response):
     seconds = int(response.data['sleep'])
@@ -32,6 +32,7 @@ status_code_mapping = {
 command_mapping = {
     'foo': print_foo,
     'bar': print_bar,
+    'x'  : print_foo,
 }
 
 def parse_response(response):

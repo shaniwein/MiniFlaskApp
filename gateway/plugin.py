@@ -6,15 +6,18 @@ plugins_cache = {}
 
 CachedPlugin  = collections.namedtuple('CachedPlugin', 'plugin last_modification_time')
 
-def matcher(func):
-    func._matcher = True
-    return func
+def matcher(tags, priority):
+    def decorated_matcher(func):
+        func._matcher = True
+        func.tags     = tags
+        func.priority = priority
+        return func
+    return decorated_matcher
 
-def command(tag, priority):
+def command(tag):
     def decorated_command(func):
         func._command = True
         func.tag      = tag
-        func.priority = priority
         return func
     return decorated_command
 
@@ -31,9 +34,9 @@ class Plugin:
         self.path     = path
         self.name     = name
         self.module   = module
-        self.matchers = self.find_items('_matcher')
-        self.commands = self.find_items('_command')
-        self.reactors = self.find_items('_reactor')
+        self.matchers = self.list_find_items('_matcher')
+        self.commands = self.dict_find_items('_command')
+        self.reactors = self.dict_find_items('_reactor')
 
     @classmethod
     def load(cls, path, name=None):
@@ -62,16 +65,23 @@ class Plugin:
     def priority(self):
         return getattr(self.module, 'priority', config.plugins.default_priority)
 
-    def find_items(self, item):
+    def list_find_items(self, item):
         items = []
         for key, value in self.module.__dict__.items():
             if hasattr(value, item):
                 items.append(value)
         return items
+    
+    def dict_find_items(self, item):
+        items = {}
+        for key, value in self.module.__dict__.items():
+            if hasattr(value, item):
+                items[value.tag] = value
+        return items
 
     def validate_plugin(self): 
-        if len(self.matchers) != 1:
-            raise ValueError('Plugin must define one matcher ({num} defined).'.format(num=len(self.matchers)))
+        if not self.matchers:
+            raise ValueError('Plugin must define at least one matcher.')
         if not self.commands:
             raise ValueError('Plugin must define at least one command.')
         if not self.reactors:
