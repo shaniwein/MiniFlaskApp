@@ -43,15 +43,14 @@ def parse_response(response):
     )
 
 def run(name):
-    client = Client(dict(name= name))
+    client = Client(json.dumps(dict(name=name)))
     while True:
         try:
-            response = parse_response(client.post(config.app.connect_url, dumps=True))
+            response = parse_response(client.post(config.app.connect_url))
             result = status_code_mapping[str(response.status_code)](response)
-            print('Result:', result)
             client.update_state(response.state)
             client.update_current(response.data)
-            client.post(config.app.submit_url, result=result, dumps=True)
+            client.post(config.app.submit_url, result=result)
         except KeyboardInterrupt:
             break
         except:

@@ -51,8 +51,7 @@ class Plugin:
                     name     = name,
                     module   = module,
                 )
-                if not cls.validate_plugin(plugin):
-                    raise ValueError
+                cls.validate_plugin(plugin)
             except:
                 plugin = None
                 traceback.print_exc()
@@ -70,15 +69,11 @@ class Plugin:
                 items.append(value)
         return items
 
-    def validate_plugin(self): # TODO: Add log
+    def validate_plugin(self): 
         if len(self.matchers) != 1:
-            logger.error('Plugin must define one matcher ({num} defined).'.format(num=len(self.matchers)))
-            return False
+            raise ValueError('Plugin must define one matcher ({num} defined).'.format(num=len(self.matchers)))
         if not self.commands:
-            logger.error('Plugin must define at least one command.')
-            return False
+            raise ValueError('Plugin must define at least one command.')
         if not self.reactors:
-            logger.error('Plugin must define at least one reactor.')
-            return False
-        return True
+            raise ValueError('Plugin must define at least one reactor.')
 

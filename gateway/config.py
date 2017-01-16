@@ -13,6 +13,7 @@ handler.setFormatter(formatter)
 
 logger.addHandler(handler)
 
+
 config = Dictionary(dict(
     
     app = Dictionary(dict(
@@ -28,7 +29,7 @@ config = Dictionary(dict(
     )),
 
     plugins = Dictionary(dict(
-        plugin_path      = '/home/user/course/project/gateway/plugins/default.py',
+        plugins_path     = '/home/user/course/project/gateway/plugins/default.py',
         default_priority = 0,
     )),
     

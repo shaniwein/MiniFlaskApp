@@ -16,26 +16,23 @@ class Session:
 
     def __init__(self, data):
         self.data   = data
-        self.client = Client.create(data)
-        self.plugin = Plugin.load(config.plugins.plugin_path)
+        self.client = Client(data)
+        self.plugin = Plugin.load(config.plugins.plugins_path)
         self.mq     = MessageQueue(host='mq')
     
     def handle_new_session(self):
         try:
-            self.mq.declare_exchange('clients')
-            new_client = not self.client.state # If new, state is []
-            if new_client:
+            if self.client.is_new:
                 logger.info('New client {name} connected'.format(name=self.client.name))
-                self.mq.publish(
-                    routing_key = 'client.new',
-                    body        = self.client.__dict__,
-                )
+                routing_key = 'client.new'
             else:       
                 logger.info('Client {name} started new session'.format(name=self.client.name))
-                self.mq.publish(
-                    routing_key = 'client.session',
-                    body        = self.client.__dict__,
-                )
+                routing_key = 'client.session'    
+            self.mq.publish(
+                exchange    = self.mq.declare_exchange('clients'),
+                routing_key = routing_key,
+                body        = self.client.properties,
+            )
             return self.generate_response()
         except Exception as e:
             traceback.print_exc()
@@ -46,10 +43,10 @@ class Session:
             logger.info('Submission by client {name}'.format(name=self.client.name))
             if self.get_current():
                 result = self.call_reactor()
-                self.mq.declare_exchange('products')
                 self.mq.publish(
+                    exchange    = self.mq.declare_exchange('products'),
                     routing_key = 'product.{plugin}'.format(plugin=self.plugin.name),
-                    body        = {'client': self.client.__dict__, 'result': result},
+                    body        = {'client': self.client.properties, 'result': result},
                 )
             return self.generate_response()
         except Exception as e:
@@ -57,16 +54,7 @@ class Session:
             logger.error('Failed handling client submission. {e}'.format(e=e))
  
     def get_next_command(self):
-        for command in sorted(self.plugin.commands, key=lambda x: x.priority, reverse=True):
-            if command.tag in self.client.state:
-                logger.debug('Client already got command {command}, continuing'.format(command=command.tag))
-                continue
-            for matcher in self.plugin.matchers:
-                if matcher(self.client):
-                    self.client.update_state(command.tag)
-                    logger.debug('Client matched {plugin} metcher, returning command {command}'.format(plugin=self.plugin.name, command=command.tag))
-                    return command
-                logger.debug('Client did not match plugin {plugin}.'.format(plugin=self.plugin.name))
+        return self.client.get_next_command_by_state(self.plugin) 
 
     def call_reactor(self):
         tag = self.get_current()
