@@ -1,10 +1,8 @@
-class Dictionary:
 
-    def __init__(self,response):
-        self._response = response
+class Dictionary(dict):
 
-    def __getattr__(self,key):
+    def __getattr__(self, key):
         try:
-            return self._response[key]
+            return self[key]
         except KeyError:
             raise AttributeError(key)
