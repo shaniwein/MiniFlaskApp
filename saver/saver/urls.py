@@ -21,7 +21,7 @@ from website import views
 router = routers.DefaultRouter()
 router.register(r'clients', views.ClientViewSet)
 router.register(r'commands', views.CommandViewSet)
-router.register(r'Result', views.ResultViewSet)
+router.register(r'result', views.ResultViewSet)
 
 urlpatterns = [
     url(r'^',          include(router.urls)),
