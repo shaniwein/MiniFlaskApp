@@ -99,20 +99,17 @@ class MessageQueue:
             body        = body, 
         ))
         return self
-        
-    def consume(self, exchange, queues, binding_keys, callback, no_ack=None):
-        for queue in queues:
-            for binding_key in binding_keys:
-                queue.bind(exchange, binding_key)
-            self._execute(lambda: self.channel.basic_consume(
-                consumer_callback = callback,
-                queue             = queue.name,
-                no_ack            = no_ack,
-            ))
-            try:
-                self._execute(lambda: self.channel.start_consuming())
-            except KeyboardInterrupt:
-                pass
+    
+    def consume(self, exchange, queues, binding_keys, callback, no_ack=None): # TODO: Add option of getting dict {queue: binding_keys}
+        if isinstance(queues, Queue):
+            self._prepare_consuming(exchange, queues, binding_keys, callback, no_ack)
+        if isinstance(queues, list):
+            for queue in queues:
+                self._prepare_consuming(exchange, queue, binding_keys, callback, no_ack)
+        try:
+            self._execute(lambda: self.channel.start_consuming())
+        except KeyboardInterrupt:
+            pass
 
     def _connect(self):
         self._close()
@@ -146,3 +143,14 @@ class MessageQueue:
                 self._connect()
             except Exception:
                 traceback.print_exc()
+
+    def _prepare_consuming(self, exchange, queue, binding_keys, callback, no_ack):
+        for binding_key in binding_keys:
+            queue.bind(exchange, binding_key)
+        self._execute(lambda: self.channel.basic_consume(
+            consumer_callback = callback,
+            queue             = queue.name,
+            no_ack            = no_ack,
+        ))
+        return self
+
