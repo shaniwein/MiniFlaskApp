@@ -1,3 +1,4 @@
+import datetime
 
 class Dictionary(dict):
 
@@ -6,3 +7,5 @@ class Dictionary(dict):
             return self[key]
         except KeyError:
             raise AttributeError(key)
+
+now = datetime.datetime.utcnow
