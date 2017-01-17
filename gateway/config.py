@@ -26,6 +26,7 @@ config = Dictionary(dict(
         default_port = 5672,
         default_exchange_name = '',
         default_exchange_type = 'topic',
+        exchange_name = 'saver',
     )),
 
     plugins = Dictionary(dict(

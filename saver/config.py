@@ -10,7 +10,7 @@ config = Dictionary(dict(
 
     mq = Dictionary(dict(
         exchange_name = 'saver',
-    
+        num_topic_nodes = 2,  
     )),
 
 ))
