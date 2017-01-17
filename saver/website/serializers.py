@@ -1,19 +1,22 @@
 from rest_framework import serializers
 from .models        import Client, Command, Result
 
-class ClientSerializer(serializers.HyperlinkedModelSerializer):
+class ResultSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Client
-        fields = ('name', 'created', 'last_connected')
-
+        model = Result
+        fields = ('command', 'data', 'created')
 
 class CommandSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Command
         fields = ('client', 'name', 'created')
 
-class ResultSerializer(serializers.HyperlinkedModelSerializer):
+class ClientSerializer(serializers.HyperlinkedModelSerializer):
+        
+    #commands = CommandSerializer(many=True, read_only=True)
+    commands = serializers.StringRelatedField(many=True, read_only=True)
+
     class Meta:
-        model = Result
-        fields = ('command', 'data', 'created')
+        model = Client
+        fields = ('name', 'created', 'last_connected', 'commands')
 
